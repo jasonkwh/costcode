@@ -60,6 +60,7 @@ if ($uploadOk == 0) {
                 if(!in_array($valuekey,$temperarray)) {
                     $sheet->setCellValueByColumnAndRow($j,1, $valuekey);
                     $sheet->setCellValueByColumnAndRow($j,$lastkey+1, "=SUM(" . (string)$alphabet[$j-1] . "2:" . (string)$alphabet[$j-1] . (string)$lastkey . ")");
+                    $sheet->getColumnDimensionByColumn($j)->setAutoSize(true);
                     array_push($temperarray,$valuekey);
                     $j++;
                 }
@@ -68,6 +69,7 @@ if ($uploadOk == 0) {
             }
             $i++;
         }
+        $sheet->getColumnDimensionByColumn(1)->setAutoSize(true);
         $writer = new Xlsx($spreadsheet2);
         $writer->save('xlsxdownloads/' . $employee . '.xlsx');
         $errormsg = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . "/test/xlsxdownloads/" . $employee . ".xlsx";
