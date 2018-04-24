@@ -72,6 +72,10 @@ if ($uploadOk == 0) {
         $sheet->getColumnDimensionByColumn(1)->setAutoSize(true);
         $writer = new Xlsx($spreadsheet2);
         $writer->save('xlsxdownloads/' . $employee . '.xlsx');
+        $spreadsheet->disconnectWorksheets();
+        $spreadsheet2->disconnectWorksheets();
+        unset($spreadsheet);
+        unset($spreadsheet2);
         $errormsg = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . "/test/xlsxdownloads/" . $employee . ".xlsx";
     } else {
         $errormsg = "error";

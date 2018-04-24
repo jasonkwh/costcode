@@ -70,7 +70,7 @@ if(($activityfile!="") && ($monthlyfile!="")) {
     $date = "Wage-" . DateTime::createFromFormat('!m',$activitysheetdatearray[1])->format('F') . " " . $activitysheetdatearray[2];
     $exportfilename = "GWA Salary Monthly - " . $activitysheetdatearray[2] . " " . $activitysheetdatearray[1];
     $checkingcol = 0;
-    for($col=1;$col<=200;$col++) {
+    for($col=1;$col<=\PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($monthlysheet->getHighestColumn());$col++) {
         if(trim($monthlysheet->getCellByColumnAndRow($col,8)->getValue())=="Checking") {
             $checkingcol = $col;
             break;
@@ -81,8 +81,62 @@ if(($activityfile!="") && ($monthlyfile!="")) {
     $checkingcol = $checkingcol + 1;
     $monthlysheet->setCellValueByColumnAndRow($checkingcol-1,8, $date);
     $monthlysheet->getColumnDimensionByColumn($checkingcol-1)->setAutoSize(true);
+    $activityarray = array();
+    for($row=11;$row<=$activitysheet->getHighestRow();$row++) {
+        if(trim($activitysheet->getCellByColumnAndRow(2,$row)->getValue())!="") {
+            $activityarray[trim($activitysheet->getCellByColumnAndRow(2,$row)->getValue())]['Wages'] = trim($activitysheet->getCellByColumnAndRow(3,$row)->getValue());
+            $activityarray[trim($activitysheet->getCellByColumnAndRow(2,$row)->getValue())]['Deductions'] = trim($activitysheet->getCellByColumnAndRow(4,$row)->getValue());
+            $activityarray[trim($activitysheet->getCellByColumnAndRow(2,$row)->getValue())]['Taxes'] = trim($activitysheet->getCellByColumnAndRow(5,$row)->getValue());
+            $activityarray[trim($activitysheet->getCellByColumnAndRow(2,$row)->getValue())]['Net Pay'] = trim($activitysheet->getCellByColumnAndRow(6,$row)->getValue());
+            $activityarray[trim($activitysheet->getCellByColumnAndRow(2,$row)->getValue())]['Expenses'] = trim($activitysheet->getCellByColumnAndRow(7,$row)->getValue());
+
+        } else {
+            break;
+        }
+    }
+    $activityworkbook->disconnectWorksheets();
+    unset($activityworkbook);
+    $monthlyarray = array();
+    for($row=9;$row<=$monthlysheet->getHighestRow();$row++) {
+        if(trim($monthlysheet->getCellByColumnAndRow(3,$row)->getValue())!="") {
+            $monthlysheet->setCellValueByColumnAndRow($checkingcol-1,$row,$activityarray[trim($monthlysheet->getCellByColumnAndRow(3,$row)->getValue())]['Wages']); //Wages
+            $monthlysheet->setCellValueByColumnAndRow($checkingcol+2,$row,$activityarray[trim($monthlysheet->getCellByColumnAndRow(3,$row)->getValue())]['Deductions']); //Deductions
+            $monthlysheet->setCellValueByColumnAndRow($checkingcol+3,$row,$activityarray[trim($monthlysheet->getCellByColumnAndRow(3,$row)->getValue())]['Taxes']); //Taxes
+            $monthlysheet->setCellValueByColumnAndRow($checkingcol+4,$row,$activityarray[trim($monthlysheet->getCellByColumnAndRow(3,$row)->getValue())]['Net Pay']); //Net Pay
+            $monthlysheet->setCellValueByColumnAndRow($checkingcol+5,$row,$activityarray[trim($monthlysheet->getCellByColumnAndRow(3,$row)->getValue())]['Expenses']); //Expenses
+            $monthlysheet->setCellValueByColumnAndRow($checkingcol,$row,'=IF(' . \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($checkingcol-2) . (string)$row . '=' . \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($checkingcol-1) . (string)$row . ',"Match","Not Match")');
+            $monthlyarray[trim($monthlysheet->getCellByColumnAndRow(3,$row)->getValue())] = 1;
+            unset($activityarray[trim($monthlysheet->getCellByColumnAndRow(3,$row)->getValue())]);
+        } else {
+            break;
+        }
+    }
+    if(!empty($activityarray)) {
+        $monthlyarray = array_merge($monthlyarray,$activityarray);
+        ksort($monthlyarray);
+        $positionindex = 0;
+        $positionarray = array();
+        foreach($monthlyarray as $key => $value) {
+            if(isset($activityarray[$key])) {
+                $positionarray[$key] = $positionindex;
+            }
+            $positionindex++;
+        }
+        foreach($positionarray as $key => $value) {
+            $monthlysheet->insertNewRowBefore($value+10,1);
+            $monthlysheet->setCellValueByColumnAndRow(3,$value+10,$key);
+            $monthlysheet->setCellValueByColumnAndRow($checkingcol,$value+10,'=IF(' . \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($checkingcol-2) . (string)($value+10) . '=' . \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($checkingcol-1) . (string)($value+10) . ',"Match","Not Match")');
+            $monthlysheet->setCellValueByColumnAndRow($checkingcol-1,$value+10,$activityarray[$key]['Wages']);
+            $monthlysheet->setCellValueByColumnAndRow($checkingcol+2,$value+10,$activityarray[$key]['Deductions']);
+            $monthlysheet->setCellValueByColumnAndRow($checkingcol+3,$value+10,$activityarray[$key]['Taxes']);
+            $monthlysheet->setCellValueByColumnAndRow($checkingcol+4,$value+10,$activityarray[$key]['Net Pay']);
+            $monthlysheet->setCellValueByColumnAndRow($checkingcol+5,$value+10,$activityarray[$key]['Expenses']);
+        }
+    }
     $writer = new Xlsx($monthlyworkbook);
     $writer->save('xlsxdownloads/' . $exportfilename . '.xlsx');
+    $monthlyworkbook->disconnectWorksheets();
+    unset($monthlyworkbook);
     $errormsg = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . "/test/xlsxdownloads/" . $exportfilename . ".xlsx";
 } else {
     $errormsg = "error";

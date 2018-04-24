@@ -50,12 +50,11 @@
                 data: form_data,
                 type: 'post',
                 success: function(data){
-                    console.log(data);
-                    /*if(data=="error") {
+                    if(data=="error") {
                         $.notify("<span class='fas fa-exclamation-circle'></span> ERROR: Please contact <a href=\"https://github.com/jasonkwh\">Jason Huang</a>.", {type:"danger",close:true,delay:3000});
                     } else {
                         location.href = data;
-                    }*/
+                    }
                 }
             });
         }
