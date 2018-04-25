@@ -85,7 +85,7 @@
                                 <p class="card-text"><input id="fileToUpload" name="fileToUpload" type="file"></p>
                             </div>
                             <div class="col-4">
-                                <button type="button" class="btn btn-success" style="margin-top:-10px" onclick="ajaxfileupload()"><i class="far fa-file-excel"></i>&nbsp;&nbsp;Submit</button>
+                                <button type="button" class="btn btn-success" style="margin-top:-10px" onclick="ajaxfileupload()"><i class="far fa-file-excel"></i>&nbsp;&nbsp;Generate</button>
                             </div>
                         </div>
                     </div>
@@ -107,7 +107,7 @@
                             <p class="card-text"><input id="leaveupload" name="leaveupload" type="file"></p>
                         </div>
                         <div class="row justify-content-center">
-                            <button type="button" class="btn btn-success" onclick="ajaxmonthlysalary()"><i class="far fa-file-excel"></i>&nbsp;&nbsp;Submit</button>
+                            <button type="button" class="btn btn-success" onclick="ajaxmonthlysalary()"><i class="far fa-file-excel"></i>&nbsp;&nbsp;Generate</button>
                         </div>
                     </div>
                 </div>
