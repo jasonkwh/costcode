@@ -38,9 +38,11 @@
         function ajaxmonthlysalary() {
             var file_data = $('#activityupload').prop('files')[0];
             var file_data2 = $('#monthlyupload').prop('files')[0];
+            var file_data3 = $('#leaveupload').prop('files')[0];
             var form_data = new FormData();
             form_data.append('activityupload', file_data);
             form_data.append('monthlyupload', file_data2);
+            form_data.append('leaveupload', file_data3);
             $.ajax({
                 url: 'monthlybackend.php', // point to server-side PHP script
                 dataType: 'text',  // what to expect back from the PHP script, if anything
@@ -99,6 +101,10 @@
                         <h5 class="card-title">GWA Monthly</h5>
                         <div class="row" style="margin-left:1px;margin-top:-8px;margin-bottom:10px">
                             <p class="card-text"><input id="monthlyupload" name="monthlyupload" type="file"></p>
+                        </div>
+                        <h5 class="card-title">Annual Leave</h5>
+                        <div class="row" style="margin-left:1px;margin-top:-8px;margin-bottom:10px">
+                            <p class="card-text"><input id="leaveupload" name="leaveupload" type="file"></p>
                         </div>
                         <div class="row justify-content-center">
                             <button type="button" class="btn btn-success" onclick="ajaxmonthlysalary()"><i class="far fa-file-excel"></i>&nbsp;&nbsp;Submit</button>
