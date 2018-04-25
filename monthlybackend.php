@@ -18,10 +18,9 @@ if (!is_dir($target_dir)) {
 }
 
 //Upload Activity Summary
-$target_file = $target_dir . basename($_FILES["activityupload"]["name"]);
-$imageFileType = pathinfo($target_file,PATHINFO_EXTENSION);
+$filename = $target_dir . basename($_FILES["activityupload"]["name"]);
+$imageFileType = pathinfo($filename,PATHINFO_EXTENSION);
 $uploadOk = 1;
-$filename = $target_dir . time() . "1." . $imageFileType;
 $errormsg = "";
 // Allow certain file formats
 if(strtolower($imageFileType) != "xls" && strtolower($imageFileType) != "xlsx") {
@@ -40,10 +39,9 @@ if ($uploadOk == 0) {
 }
 
 //Upload GWA Monthly
-$target_file = $target_dir . basename($_FILES["monthlyupload"]["name"]);
-$imageFileType = pathinfo($target_file,PATHINFO_EXTENSION);
+$filename = $target_dir . basename($_FILES["monthlyupload"]["name"]);
+$imageFileType = pathinfo($filename,PATHINFO_EXTENSION);
 $uploadOk = 1;
-$filename = $target_dir . time() . "2." . $imageFileType;
 $errormsg = "";
 // Allow certain file formats
 if(strtolower($imageFileType) != "xls" && strtolower($imageFileType) != "xlsx") {
@@ -62,10 +60,9 @@ if ($uploadOk == 0) {
 }
 
 //Upload Annual Leave
-$target_file = $target_dir . basename($_FILES["leaveupload"]["name"]);
-$imageFileType = pathinfo($target_file,PATHINFO_EXTENSION);
+$filename = $target_dir . basename($_FILES["leaveupload"]["name"]);
+$imageFileType = pathinfo($filename,PATHINFO_EXTENSION);
 $uploadOk = 1;
-$filename = $target_dir . time() . "3." . $imageFileType;
 $errormsg = "";
 // Allow certain file formats
 if(strtolower($imageFileType) != "xls" && strtolower($imageFileType) != "xlsx") {
@@ -87,25 +84,11 @@ if(($activityfile!="") && ($monthlyfile!="") && ($leavefile!="")) {
     $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
     $activityworkbook = $reader->load($activityfile);
     $activitysheet = $activityworkbook->getSheet(0);
-    $monthlyworkbook = $reader->load($monthlyfile);
-    $monthlysheet = $monthlyworkbook->getSheet(0);
     $activitysheetdate = explode(" To ",trim($activitysheet->getCell('D8')->getValue()))[0];
     $activitysheetdatearray = explode("/",$activitysheetdate);
     $date = "Wage-" . DateTime::createFromFormat('!m',$activitysheetdatearray[1])->format('F') . " " . $activitysheetdatearray[2];
     $leavedate = DateTime::createFromFormat('!m',$activitysheetdatearray[1])->format('M') . "-" . substr($activitysheetdatearray[2],2);
     $exportfilename = "GWA Salary Monthly - " . $activitysheetdatearray[2] . " " . $activitysheetdatearray[1];
-    $checkingcol = 0;
-    for($col=1;$col<=\PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($monthlysheet->getHighestColumn());$col++) {
-        if(trim($monthlysheet->getCellByColumnAndRow($col,8)->getValue())=="Checking") {
-            $checkingcol = $col;
-            break;
-        }
-    }
-    $monthlysheet->getColumnDimensionByColumn($checkingcol-2)->setVisible(false);
-    $monthlysheet->insertNewColumnBeforeByIndex($checkingcol,1);
-    $checkingcol = $checkingcol + 1;
-    $monthlysheet->setCellValueByColumnAndRow($checkingcol-1,8, $date);
-    $monthlysheet->getColumnDimensionByColumn($checkingcol-1)->setAutoSize(true);
     $activityarray = array();
     for($row=11;$row<=$activitysheet->getHighestRow();$row++) {
         if(trim($activitysheet->getCellByColumnAndRow(2,$row)->getValue())!="") {
@@ -137,9 +120,24 @@ if(($activityfile!="") && ($monthlyfile!="") && ($leavefile!="")) {
     }
     $leaveworkbook->disconnectWorksheets();
     unset($leaveworkbook);
+    $monthlyworkbook = $reader->load($monthlyfile);
+    $monthlysheet = $monthlyworkbook->getSheet(0);
+    $checkingcol = 0;
+    for($col=1;$col<=\PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($monthlysheet->getHighestColumn());$col++) {
+        if(trim($monthlysheet->getCellByColumnAndRow($col,8)->getValue())=="Checking") {
+            $checkingcol = $col;
+            break;
+        }
+    }
+    $monthlysheet->getColumnDimensionByColumn($checkingcol-2)->setVisible(false);
+    $monthlysheet->insertNewColumnBeforeByIndex($checkingcol,1);
+    $checkingcol = $checkingcol + 1;
+    $monthlysheet->setCellValueByColumnAndRow($checkingcol-1,8, $date);
+    $monthlysheet->getColumnDimensionByColumn($checkingcol-1)->setAutoSize(true);
     $monthlyarray = array();
+    $totalrow = 0;
     for($row=9;$row<=$monthlysheet->getHighestRow();$row++) {
-        if(trim($monthlysheet->getCellByColumnAndRow(3,$row)->getValue())!="") {
+        if((trim($monthlysheet->getCellByColumnAndRow(3,$row)->getValue())!="") && (trim($monthlysheet->getCellByColumnAndRow(3,$row)->getValue())!="Total:")) {
             $monthlysheet->setCellValueByColumnAndRow($checkingcol-1,$row,$activityarray[trim($monthlysheet->getCellByColumnAndRow(3,$row)->getValue())]['Wages']); //Wages
             $monthlysheet->setCellValueByColumnAndRow($checkingcol+2,$row,$activityarray[trim($monthlysheet->getCellByColumnAndRow(3,$row)->getValue())]['Deductions']); //Deductions
             $monthlysheet->setCellValueByColumnAndRow($checkingcol+3,$row,$activityarray[trim($monthlysheet->getCellByColumnAndRow(3,$row)->getValue())]['Taxes']); //Taxes
@@ -150,9 +148,12 @@ if(($activityfile!="") && ($monthlyfile!="") && ($leavefile!="")) {
             $monthlyarray[trim($monthlysheet->getCellByColumnAndRow(3,$row)->getValue())] = 1;
             unset($activityarray[trim($monthlysheet->getCellByColumnAndRow(3,$row)->getValue())]);
         } else {
-            break;
+            if(trim($monthlysheet->getCellByColumnAndRow(3,$row)->getValue())=="Total:") {
+                $totalrow = $row;
+            }
         }
     }
+    $insertedrow = 0;
     if(!empty($activityarray)) {
         $monthlyarray = array_merge($monthlyarray,$activityarray);
         ksort($monthlyarray);
@@ -174,8 +175,10 @@ if(($activityfile!="") && ($monthlyfile!="") && ($leavefile!="")) {
             $monthlysheet->setCellValueByColumnAndRow($checkingcol+5,$value+10,$activityarray[$key]['Expenses']);
             $monthlysheet->setCellValueByColumnAndRow($checkingcol+6,$value+10,$leavearray[$key]);
             $monthlysheet->setCellValueByColumnAndRow($checkingcol,$value+10,'=IF(' . \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($checkingcol-2) . (string)($value+10) . '=' . \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($checkingcol-1) . (string)($value+10) . ',"Match","Not Match")');
+            $insertedrow++;
         }
     }
+    $monthlysheet->setCellValueByColumnAndRow($checkingcol-1,$totalrow+$insertedrow,"=SUM(" . \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($checkingcol-1) . "9:" . \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($checkingcol-1) . (string)($totalrow-2+$insertedrow) . ")");
 
     $writer = new Xlsx($monthlyworkbook);
     $writer->save('xlsxdownloads/' . $exportfilename . '.xlsx');
