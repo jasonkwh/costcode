@@ -16,10 +16,9 @@ $target_dir = "xlsxuploads/";
 if (!is_dir($target_dir)) {
     mkdir($target_dir, 0755, true);
 }
-$target_file = $target_dir . basename($_FILES["fileToUpload"]["name"]);
-$imageFileType = pathinfo($target_file,PATHINFO_EXTENSION);
+$filename = $target_dir . basename($_FILES["fileToUpload"]["name"]);
+$imageFileType = pathinfo($filename,PATHINFO_EXTENSION);
 $uploadOk = 1;
-$filename = $target_dir . time() . "." . $imageFileType;
 $errormsg = "";
 // Allow certain file formats
 if(strtolower($imageFileType) != "xls" && strtolower($imageFileType) != "xlsx") {
