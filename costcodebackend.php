@@ -30,6 +30,7 @@ if ($uploadOk == 0) {
     $errormsg = "error";
 } else {
     if (move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $filename)) {
+        $costcodeopt = $_REQUEST['costcodeopt'];
         $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
         $spreadsheet = $reader->load($filename);
         $worksheet = $spreadsheet->getSheet(0);
@@ -37,26 +38,50 @@ if ($uploadOk == 0) {
         $startworking = 0;
         $employee = "";
         $overtimetotal = 0.00;
-        for($i=1;$i<=$worksheet->getHighestRow();$i++) {
-            if($startworking == 1) {
-                if((trim($worksheet->getCell('K' . $i)->getValue())!="COST CODE") && (trim($worksheet->getCell('K' . $i)->getValue())!="") && (trim($worksheet->getCell('J' . $i)->getValue())!="")) {
-                    $temparray[trim($worksheet->getCell('K' . $i)->getValue())][trim($worksheet->getCell('J' . $i)->getValue())] += (float)trim($worksheet->getCell('L' . $i)->getValue()) + (float)trim($worksheet->getCell('M' . $i)->getValue()) + (float)trim($worksheet->getCell('N' . $i)->getValue()) + (float)trim($worksheet->getCell('O' . $i)->getValue()) + (float)trim($worksheet->getCell('P' . $i)->getValue()) + (float)trim($worksheet->getCell('Q' . $i)->getValue()) + (float)trim($worksheet->getCell('R' . $i)->getValue());
+        $j = 0;
+        $valueincrement = 0;
+        if($costcodeopt==0) {
+            for($i=1;$i<=$worksheet->getHighestRow();$i++) {
+                if($startworking == 1) {
+                    if((trim($worksheet->getCell('K' . $i)->getValue())!="COST CODE") && (trim($worksheet->getCell('K' . $i)->getValue())!="") && (trim($worksheet->getCell('J' . $i)->getValue())!="")) {
+                        $temparray[trim($worksheet->getCell('K' . $i)->getCalculatedValue())][trim($worksheet->getCell('J' . $i)->getCalculatedValue())] += (float)trim($worksheet->getCell('L' . $i)->getValue()) + (float)trim($worksheet->getCell('M' . $i)->getValue()) + (float)trim($worksheet->getCell('N' . $i)->getValue()) + (float)trim($worksheet->getCell('O' . $i)->getValue()) + (float)trim($worksheet->getCell('P' . $i)->getValue()) + (float)trim($worksheet->getCell('Q' . $i)->getValue()) + (float)trim($worksheet->getCell('R' . $i)->getValue());
+                    }
+                }
+                if(trim($worksheet->getCell('K' . $i)->getValue())=="COST CODE") {
+                    $startworking = 1;
+                }
+                if(trim($worksheet->getCell('A' . $i)->getValue())=="EMPLOYEE NAME:") {
+                    $employee = str_replace(" ","_",str_replace("'","_",trim($worksheet->getCell('B' . $i)->getValue())));
+                }
+                if(strtolower(trim($worksheet->getCell('P' . $i)->getValue()))=="overtime this pay period") {
+                    $overtimetotal = (float)(trim($worksheet->getCell('S' . $i)->getCalculatedValue()));
                 }
             }
-            if(trim($worksheet->getCell('K' . $i)->getValue())=="COST CODE") {
-                $startworking = 1;
+            $j = 2;
+            $valueincrement = 2;
+        } else {
+            for($i=1;$i<=$worksheet->getHighestRow();$i++) {
+                if($startworking == 1) {
+                    if((trim($worksheet->getCell('K' . $i)->getValue())!="JOB CODE") && (trim($worksheet->getCell('K' . $i)->getValue())!="") && (trim($worksheet->getCell('J' . $i)->getValue())!="") && (trim($worksheet->getCell('L' . $i)->getValue())!="")) {
+                        $temparray[explode(" - ",trim($worksheet->getCell('K' . $i)->getCalculatedValue()))[0] . " - " . explode(" - ",trim($worksheet->getCell('L' . $i)->getCalculatedValue()))[0]][trim($worksheet->getCell('J' . $i)->getValue())] += (float)trim($worksheet->getCell('M' . $i)->getValue()) + (float)trim($worksheet->getCell('N' . $i)->getValue()) + (float)trim($worksheet->getCell('O' . $i)->getValue()) + (float)trim($worksheet->getCell('P' . $i)->getValue()) + (float)trim($worksheet->getCell('Q' . $i)->getValue()) + (float)trim($worksheet->getCell('R' . $i)->getValue()) + (float)trim($worksheet->getCell('S' . $i)->getValue());
+                    }
+                }
+                if(trim($worksheet->getCell('K' . $i)->getValue())=="JOB CODE") {
+                    $startworking = 1;
+                }
+                if(trim($worksheet->getCell('A' . $i)->getValue())=="EMPLOYEE NAME:") {
+                    $employee = str_replace(" ","_",str_replace("'","_",trim($worksheet->getCell('B' . $i)->getValue())));
+                }
+                if(strtolower(trim($worksheet->getCell('Q' . $i)->getValue()))=="overtime this pay period") {
+                    $overtimetotal = (float)(trim($worksheet->getCell('T' . $i)->getCalculatedValue()));
+                }
             }
-            if(trim($worksheet->getCell('A' . $i)->getValue())=="EMPLOYEE NAME:") {
-                $employee = str_replace(" ","_",str_replace("'","_",trim($worksheet->getCell('B' . $i)->getValue())));
-            }
-            if(strtolower(trim($worksheet->getCell('P' . $i)->getValue()))=="overtime this pay period") {
-                $overtimetotal = (float)(trim($worksheet->getCell('S' . $i)->getCalculatedValue()));
-            }
+            $j = 3;
+            $valueincrement = 3;
         }
         $spreadsheet2 = new Spreadsheet();
         $sheet = $spreadsheet2->getActiveSheet();
         $i = 2;
-        $j = 2;
         $temperarray = array();
         $tempindex = 0;
         $lastkey = sizeof($temparray)+1;
@@ -76,7 +101,13 @@ if ($uploadOk == 0) {
         ];
         $validatearray = array();
         foreach ($temparray as $key => $values) {
-            $sheet->setCellValue('A' . $i, $key);
+            if($costcodeopt==0) {
+                $sheet->setCellValue('A' . $i, $key);
+            } else {
+                $tempindexarray = explode(" - ",$key);
+                $sheet->setCellValue('A' . $i, $tempindexarray[0]);
+                $sheet->setCellValue('B' . $i, $tempindexarray[1]);
+            }
             foreach($values as $valuekey => $value) {
                 if(!in_array($valuekey,$temperarray)) {
                     if(ContainsNumbers($valuekey)) {
@@ -89,7 +120,7 @@ if ($uploadOk == 0) {
                     array_push($temperarray,$valuekey);
                     $j++;
                 }
-                $tempindex = array_search($valuekey, $temperarray) + 2;
+                $tempindex = array_search($valuekey, $temperarray) + $valueincrement;
                 $sheet->setCellValueByColumnAndRow($tempindex,$i, $value);
             }
             $i++;
