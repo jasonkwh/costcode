@@ -40,11 +40,15 @@ if ($uploadOk == 0) {
         $overtimetotal = 0.00;
         $j = 0;
         $valueincrement = 0;
+        $checkcostcodefill = 0;
         if($costcodeopt==0) {
             for($i=1;$i<=$worksheet->getHighestRow();$i++) {
                 if($startworking == 1) {
                     if((trim($worksheet->getCell('K' . $i)->getValue())!="COST CODE") && (trim($worksheet->getCell('K' . $i)->getValue())!="") && (trim($worksheet->getCell('J' . $i)->getValue())!="")) {
                         $temparray[trim($worksheet->getCell('K' . $i)->getCalculatedValue())][trim($worksheet->getCell('J' . $i)->getCalculatedValue())] += (float)trim($worksheet->getCell('L' . $i)->getValue()) + (float)trim($worksheet->getCell('M' . $i)->getValue()) + (float)trim($worksheet->getCell('N' . $i)->getValue()) + (float)trim($worksheet->getCell('O' . $i)->getValue()) + (float)trim($worksheet->getCell('P' . $i)->getValue()) + (float)trim($worksheet->getCell('Q' . $i)->getValue()) + (float)trim($worksheet->getCell('R' . $i)->getValue());
+                    }
+                    if((trim($worksheet->getCell('K' . $i)->getValue())!="COST CODE") && (trim($worksheet->getCell('K' . $i)->getValue())=="") && (trim($worksheet->getCell('J' . $i)->getValue())!="") && (trim($worksheet->getCell('S' . $i)->getCalculatedValue())>0.0)) {
+                        $checkcostcodefill = 1;
                     }
                 }
                 if(trim($worksheet->getCell('K' . $i)->getValue())=="COST CODE") {
@@ -129,8 +133,13 @@ if ($uploadOk == 0) {
         foreach ($validatearray as $col) {
             $totalhours += (float)($sheet->getCellByColumnAndRow($col,$lastkey+1)->getCalculatedValue());
         }
-        if($totalhours!=$overtimetotal) {
-            $sheet->setCellValueByColumnAndRow(1,$lastkey+3,"WARNING: PLEASE CHECK THE ORIGINAL SPREADSHEET");
+        if(($totalhours!=$overtimetotal) || ($checkcostcodefill==1)) {
+            if($totalhours!=$overtimetotal) {
+                $sheet->setCellValueByColumnAndRow(1,$lastkey+3,"WARNING: OVERTIME TOTAL NOT MATCH!");
+            }
+            if($checkcostcodefill==1) {
+                $sheet->setCellValueByColumnAndRow(1,$lastkey+3,"WARNING: PLEASE CHECK THE ALLOWANCE!");
+            }
             $sheet->getStyleByColumnAndRow(1,$lastkey+3)->getFont()->setBold(true);
             $sheet->getStyleByColumnAndRow(1,$lastkey+3)->getFont()->setColor( new \PhpOffice\PhpSpreadsheet\Style\Color( \PhpOffice\PhpSpreadsheet\Style\Color::COLOR_RED ) );
         }
