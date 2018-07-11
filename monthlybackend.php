@@ -184,7 +184,7 @@ if(($activityfile!="") && ($monthlyfile!="") && ($leavefile!="")) {
     $writer->save('xlsxdownloads/' . $exportfilename . '.xlsx');
     $monthlyworkbook->disconnectWorksheets();
     unset($monthlyworkbook);
-    $errormsg = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . "/test/xlsxdownloads/" . $exportfilename . ".xlsx";
+    $errormsg = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . "/xlsxdownloads/" . $exportfilename . ".xlsx";
 } else {
     $errormsg = "error";
 }

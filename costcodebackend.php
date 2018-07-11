@@ -66,11 +66,11 @@ if ($uploadOk == 0) {
         } else {
             for($i=1;$i<=$worksheet->getHighestRow();$i++) {
                 if($startworking == 1) {
-                    if((trim($worksheet->getCell('K' . $i)->getValue())!="JOB CODE") && (trim($worksheet->getCell('K' . $i)->getValue())!="") && (trim($worksheet->getCell('J' . $i)->getValue())!="") && (trim($worksheet->getCell('L' . $i)->getValue())!="")) {
-                        $temparray[explode(" - ",trim($worksheet->getCell('K' . $i)->getCalculatedValue()))[0] . " - " . explode(" - ",trim($worksheet->getCell('L' . $i)->getCalculatedValue()))[0]][trim($worksheet->getCell('J' . $i)->getValue())] += (float)trim($worksheet->getCell('M' . $i)->getValue()) + (float)trim($worksheet->getCell('N' . $i)->getValue()) + (float)trim($worksheet->getCell('O' . $i)->getValue()) + (float)trim($worksheet->getCell('P' . $i)->getValue()) + (float)trim($worksheet->getCell('Q' . $i)->getValue()) + (float)trim($worksheet->getCell('R' . $i)->getValue()) + (float)trim($worksheet->getCell('S' . $i)->getValue());
+                    if((!(preg_match('/\JOB CODE\b/',trim($worksheet->getCell('K' . $i)->getValue())))) && (trim($worksheet->getCell('K' . $i)->getValue())!="") && (trim($worksheet->getCell('J' . $i)->getValue())!="") && (trim($worksheet->getCell('L' . $i)->getValue())!="")) {
+                        $temparray[explode(" - ",trim($worksheet->getCell('K' . $i)->getCalculatedValue()))[0] . " - " . explode(" - ",trim($worksheet->getCell('L' . $i)->getOldCalculatedValue()))[0]][trim($worksheet->getCell('J' . $i)->getValue())] += (float)trim($worksheet->getCell('M' . $i)->getValue()) + (float)trim($worksheet->getCell('N' . $i)->getValue()) + (float)trim($worksheet->getCell('O' . $i)->getValue()) + (float)trim($worksheet->getCell('P' . $i)->getValue()) + (float)trim($worksheet->getCell('Q' . $i)->getValue()) + (float)trim($worksheet->getCell('R' . $i)->getValue()) + (float)trim($worksheet->getCell('S' . $i)->getValue());
                     }
                 }
-                if(trim($worksheet->getCell('K' . $i)->getValue())=="JOB CODE") {
+                if(preg_match('/\JOB CODE\b/',trim($worksheet->getCell('K' . $i)->getValue()))) {
                     $startworking = 1;
                 }
                 if(trim($worksheet->getCell('A' . $i)->getValue())=="EMPLOYEE NAME:") {
@@ -150,7 +150,7 @@ if ($uploadOk == 0) {
         $spreadsheet2->disconnectWorksheets();
         unset($spreadsheet);
         unset($spreadsheet2);
-        $errormsg = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . "/test/xlsxdownloads/" . $employee . ".xlsx";
+        $errormsg = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . "/xlsxdownloads/" . $employee . ".xlsx";
     } else {
         $errormsg = "error";
     }
