@@ -100,7 +100,7 @@
                     </div>
                 </div>
             </div>
-            <div class="tab-pane fade active" id="pills-srd2" role="tabpanel" aria-labelledby="pills-srd2-tab">
+            <div class="tab-pane fade" id="pills-srd2" role="tabpanel" aria-labelledby="pills-srd2-tab">
                 <div class="card" style="width: 30rem;">
                     <div class="card-body">
                         <h5 class="card-title">Open an Excel file</h5>
