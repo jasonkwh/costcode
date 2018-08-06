@@ -66,18 +66,22 @@ if ($uploadOk == 0) {
         } else {
             for($i=1;$i<=$worksheet->getHighestRow();$i++) {
                 if($startworking == 1) {
-                    if((!(preg_match('/\JOB CODE\b/',trim($worksheet->getCell('K' . $i)->getValue())))) && (trim($worksheet->getCell('K' . $i)->getValue())!="") && (trim($worksheet->getCell('J' . $i)->getValue())!="") && (trim($worksheet->getCell('L' . $i)->getValue())!="")) {
-                        $temparray[explode(" - ",trim($worksheet->getCell('K' . $i)->getCalculatedValue()))[0] . " - " . explode(" - ",trim($worksheet->getCell('L' . $i)->getOldCalculatedValue()))[0]][trim($worksheet->getCell('J' . $i)->getValue())] += (float)trim($worksheet->getCell('M' . $i)->getValue()) + (float)trim($worksheet->getCell('N' . $i)->getValue()) + (float)trim($worksheet->getCell('O' . $i)->getValue()) + (float)trim($worksheet->getCell('P' . $i)->getValue()) + (float)trim($worksheet->getCell('Q' . $i)->getValue()) + (float)trim($worksheet->getCell('R' . $i)->getValue()) + (float)trim($worksheet->getCell('S' . $i)->getValue());
+                    if((!(preg_match('/\JOB CODE\b/',trim($worksheet->getCell('L' . $i)->getValue())))) && (trim($worksheet->getCell('L' . $i)->getValue())!="") && (trim($worksheet->getCell('L' . $i)->getValue())!="4") && (trim($worksheet->getCell('K' . $i)->getValue())!="") && (trim($worksheet->getCell('K' . $i)->getValue())!="3") && (trim($worksheet->getCell('M' . $i)->getValue())!="")) {
+                        if(preg_match('/\=\b/',trim($worksheet->getCell('L' . $i)->getValue()))) {
+                            $temparray[explode(" - ",trim($worksheet->getCell('L' . $i)->getOldCalculatedValue()))[0] . " - " . explode(" - ",trim($worksheet->getCell('M' . $i)->getOldCalculatedValue()))[0]][trim($worksheet->getCell('K' . $i)->getValue())] += (float)trim($worksheet->getCell('N' . $i)->getValue()) + (float)trim($worksheet->getCell('O' . $i)->getValue()) + (float)trim($worksheet->getCell('P' . $i)->getValue()) + (float)trim($worksheet->getCell('Q' . $i)->getValue()) + (float)trim($worksheet->getCell('R' . $i)->getValue()) + (float)trim($worksheet->getCell('S' . $i)->getValue()) + (float)trim($worksheet->getCell('T' . $i)->getValue());
+                        } else {
+                            $temparray[explode(" - ",trim($worksheet->getCell('L' . $i)->getValue()))[0] . " - " . explode(" - ",trim($worksheet->getCell('M' . $i)->getOldCalculatedValue()))[0]][trim($worksheet->getCell('K' . $i)->getValue())] += (float)trim($worksheet->getCell('N' . $i)->getValue()) + (float)trim($worksheet->getCell('O' . $i)->getValue()) + (float)trim($worksheet->getCell('P' . $i)->getValue()) + (float)trim($worksheet->getCell('Q' . $i)->getValue()) + (float)trim($worksheet->getCell('R' . $i)->getValue()) + (float)trim($worksheet->getCell('S' . $i)->getValue()) + (float)trim($worksheet->getCell('T' . $i)->getValue());
+                        }
                     }
                 }
-                if(preg_match('/\JOB CODE\b/',trim($worksheet->getCell('K' . $i)->getValue()))) {
+                if(preg_match('/\JOB CODE\b/',trim($worksheet->getCell('L' . $i)->getValue()))) {
                     $startworking = 1;
                 }
                 if(trim($worksheet->getCell('A' . $i)->getValue())=="EMPLOYEE NAME:") {
-                    $employee = str_replace(" ","_",str_replace("'","_",trim($worksheet->getCell('B' . $i)->getValue())));
+                    $employee = str_replace(" ","_",str_replace("'","_",trim($worksheet->getCell('C' . $i)->getValue())));
                 }
-                if(strtolower(trim($worksheet->getCell('Q' . $i)->getValue()))=="overtime this pay period") {
-                    $overtimetotal = (float)(trim($worksheet->getCell('T' . $i)->getCalculatedValue()));
+                if(strtolower(trim($worksheet->getCell('R' . $i)->getValue()))=="overtime this pay period") {
+                    $overtimetotal = (float)(trim($worksheet->getCell('U' . $i)->getCalculatedValue()));
                 }
             }
             $j = 3;
